@@ -1,5 +1,3 @@
-#include "Arduino.h"
-
 //pin mapping:
 
 int solU=PIN_B6;    //solenoid for cylinder up
@@ -8,7 +6,7 @@ int solL=PIN_B4;    //solenoid for drawer left
 int solR=PIN_B3;    //solenoid for drawer right
 int solS=PIN_B2;    //solenoid for shaker motor 
 
-int switchON=PIN_C7;    //on/off switch
+int switchRUNNING=PIN_C7;    //on/off switch
 int switchAUTO=PIN_C6;    //auto/manual switch
 int btnU=PIN_C5;    //button for up
 int btnD=PIN_C4;    //button for down
@@ -35,7 +33,7 @@ unsigned long ledAStartTime=0;
 unsigned long prestime=0;
 
 boolean automode=false;        //automode starts at off
-boolean on=false;
+boolean running=false;
 
 boolean ledPIsLit=false;        //ledPIsLit starts at off
 boolean ledAIsLit=false;        //led starts at off
@@ -57,25 +55,23 @@ boolean pressureIsHigh(){
   return false;
 }
 
-void setOn(){
- if(!on){                //if the switch is off,
+void setRunning(){
+ if(!running){                //if the switch is off,
   digitalWrite(solU,LOW);            //turn all solenoids off
   digitalWrite(solD,LOW);
   digitalWrite(solL,LOW);
   digitalWrite(solR,LOW);
   digitalWrite(solS,LOW);
  }
- if(digitalRead(switchON)==LOW){    //if we are reading the ON switch to indeed be on
+ if(digitalRead(switchRUNNING)==LOW){    //if we are reading the ON switch to indeed be on
   delay(5);                // then delay for debounce
-  if(digitalRead(switchON)==LOW){    //if it's still low, then we set ON to be true 
-   on=true;
+  if(digitalRead(switchRUNNING)==LOW){    //if it's still low, then we set ON to be true 
+   running=true;
   }
  }else{                    //otherwise, if the on switch is set to off, 
    delay(5);
-  if(digitalRead(switchON)==HIGH){
-   on=false;
-   digitalWrite(xledA,LOW);
-
+  if(digitalRead(switchRUNNING)==HIGH){
+   running=false;
   }
  }
 
@@ -86,7 +82,7 @@ void setAuto(){
   // at evey given instant
   delay(100); //Universal delay for debouncing and smooth operation
 
- if(!on) return;            
+ if(!running) return;            
 
  //This block makes sure that if we're reading high pressure, ledP is lit
   if(pressureIsHigh() && !ledPIsLit){    //If we read high pressure, but ledP is not lit
@@ -170,7 +166,7 @@ void setAuto(){
 }
 
 void actButtons(){        //this is the function for controlling the machine manually via buttons
- if(!on) return;        //if we ended up here somehow when the on switch is low, go back to where we came from
+ if(!running) return;        //if we ended up here somehow when the on switch is low, go back to where we came from
  if(digitalRead(btnU)==LOW){    //if we read up button on, wait 3ms for debounce
   delay(3);
   if(digitalRead(btnU)==LOW){    //if we read it low still, go to switchsol case 0 and set it high
@@ -303,7 +299,6 @@ void drawerTiming(){
   while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time or pressure threshold
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
-    Serial.print(timeElapsed,DEC);
   }
   digitalWrite(solL,LOW); // The cylinder should now be in position, stop here
   return;
@@ -377,14 +372,13 @@ void mainTiming(){
   while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
-    Serial.print(timeElapsed,DEC);
   }
   digitalWrite(solU,LOW); // The cylinder should now be in position, stop here
   return;
 }
 
 void testButtons(){    //this is the function for controlling the machine manually via buttons
- if(on) return;    //if we ended up here somehow when the on switch is low, go back to where we came from
+ if(running) return;    //if we ended up here somehow when the on switch is low, go back to where we came from
  if(digitalRead(btnU)==LOW){  //if we read up button on, wait 3ms for debounce
   delay(3);
   if(digitalRead(btnU)==LOW){ //if we read it low still, then button is pressed, run drawer bounce routine
@@ -459,7 +453,7 @@ void autoExec(){
   const long int desiredShakeTime = 3000;
 
   //This state machine should not be operating unless the machine is active and on automode
-  if(!on || !automode){return;}
+  if(!running || !automode){return;}
 
 
   //Clear the drawer and open the chamber
@@ -594,7 +588,7 @@ void setup() {
   pinMode(btnR, INPUT);
   pinMode(btnS, INPUT);
   pinMode(pressuresens, INPUT);
-  pinMode(switchON, INPUT);
+  pinMode(switchRUNNING, INPUT);
   pinMode(switchAUTO, INPUT);
   digitalWrite(btnU, HIGH);
   digitalWrite(btnD, HIGH);
@@ -605,9 +599,6 @@ void setup() {
 
   pinMode(potM, INPUT);
   pinMode(potD, INPUT);
-  if (digitalRead(switchON)==LOW){
-    on = true; 
-  }
 
   Serial.begin(9600);
 }
@@ -616,15 +607,20 @@ void setup() {
 
 // the loop routine runs over and over again forever:
 void loop() {
-  setOn();
+  setRunning();
   setAuto();
   if(automode){
    autoExec();
   }else{
-    if(on){
+    if(running){
       actButtons();
     }else{
       testButtons();
     }
   }
+  // Serial.print("Mode:");
+  // if(running && automode){Serial.println("auto");}
+  // if(running && !automode){Serial.println("manual");}
+  // if(!running){Serial.println("test");}
+  Serial.print("ReadRunning:");Serial.println(digitalRead(switchRUNNING););
 }
