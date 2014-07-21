@@ -579,9 +579,12 @@ void setup() {
   pinMode(solR, OUTPUT);
   pinMode(solS, OUTPUT);
 
+  //initializing LED modes
   pinMode(ledP, OUTPUT);
   pinMode(xledA, OUTPUT);
 
+
+  //initializing inputs
   pinMode(btnU, INPUT);
   pinMode(btnD, INPUT);
   pinMode(btnL, INPUT);
@@ -590,12 +593,16 @@ void setup() {
   pinMode(pressuresens, INPUT);
   pinMode(switchRUNNING, INPUT);
   pinMode(switchAUTO, INPUT);
+
+  //We must do this to get accurate reads
   digitalWrite(btnU, HIGH);
   digitalWrite(btnD, HIGH);
   digitalWrite(btnL, HIGH);
   digitalWrite(btnR, HIGH);
   digitalWrite(btnS, HIGH);
   digitalWrite(pressuresens, HIGH);
+  digitalWrite(switchRUNNING, HIGH);
+  digitalWrite(switchAUTO, HIGH);
 
   pinMode(potM, INPUT);
   pinMode(potD, INPUT);
@@ -622,5 +629,5 @@ void loop() {
   // if(running && automode){Serial.println("auto");}
   // if(running && !automode){Serial.println("manual");}
   // if(!running){Serial.println("test");}
-  Serial.print("ReadRunning:");Serial.println(digitalRead(switchRUNNING););
+  Serial.print("ReadRunning:");Serial.println(digitalRead(switchRUNNING));
 }
