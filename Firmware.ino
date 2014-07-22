@@ -82,8 +82,6 @@ void setAuto(){
   // at evey given instant
   delay(100); //Universal delay for debouncing and smooth operation
 
- if(!running) return;            
-
  //This block makes sure that if we're reading high pressure, ledP is lit
   if(pressureIsHigh() && !ledPIsLit){    //If we read high pressure, but ledP is not lit
 
@@ -110,7 +108,7 @@ void setAuto(){
   }
 
  ////This block makes sure that if the auto switch is toggled, ledA is blinking
- if(digitalRead(switchAUTO)==HIGH){
+ if(digitalRead(switchAUTO)==HIGH && running){
   delay(3); //debounce
   if(digitalRead(switchAUTO)==HIGH){
 
@@ -151,7 +149,7 @@ void setAuto(){
 
  //If the autoswitch is not on, make sure that ledA and automode flag are off
  }
- }else if(digitalRead(switchAUTO)==HIGH){
+ }else if(digitalRead(switchAUTO)==LOW){
    delay(3);
   if(automode && digitalRead(switchAUTO)==LOW){
 
@@ -630,4 +628,6 @@ void loop() {
   // if(running && !automode){Serial.println("manual");}
   // if(!running){Serial.println("test");}
   Serial.print("ReadRunning:");Serial.println(digitalRead(switchRUNNING));
+  Serial.print("ReadAuto:");Serial.println(digitalRead(switchAUTO));
+  Serial.print("AutoVar:");Serial.println(automode);
 }
