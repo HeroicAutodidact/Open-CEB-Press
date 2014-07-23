@@ -416,7 +416,7 @@ const short RAISE_BRICK = 6;      //Brings the brick to the drawer level
 
 //The state we track
 short autoState = PUSH_BRICK;
-int lastStateChange = 0; //Marks the last time state was changed
+unsigned long lastStateChange = 0; //Marks the last time state was changed
 boolean stateIsSetup = false;
 
 void changeAutoState(int nextState){
@@ -507,6 +507,8 @@ void autoExec(){
 
     //If we've reached threshold time...
     else if(millis() - lastStateChange > dHaltTime()){
+      Serial.print("ElapsedTime");Serial.println(millis() - lastStateChange)
+      Serial.print("dHaltTime");Serial.println(dHaltTime())
 
       //Stop retraction and change states after reaching threshold 
       digitalWrite(solR,LOW);
@@ -524,6 +526,8 @@ void autoExec(){
     }
 
     else if(millis() - lastStateChange > mHaltTime()){
+      Serial.print("ElapsedTime");Serial.println(millis() - lastStateChange)
+      Serial.print("mHaltTime");Serial.println(mHaltTime())
 
       //Turn off the main cylinder
       digitalWrite(solU,LOW);
