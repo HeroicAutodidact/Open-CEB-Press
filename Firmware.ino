@@ -240,13 +240,13 @@ void drawerBounce(){
   }
   digitalWrite(solR,LOW);                 //Cut extention pressure pressure
   delay(200);
-  digitalWrite(solL,HIGH);                //Begin backwards pressure
+  digitalWrite(solR,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
   while(!pressureIsHigh()){
     delay(50);
   }
   dRetractionTime = millis() - retractionStart;
-  digitalWrite(solL,LOW);
+  digitalWrite(solR,LOW);
   return;
 }
 
@@ -276,11 +276,11 @@ void drawerTiming(){
   delay(300); //Debounce 
 
   // extend the cylinder until we reach threshold pressure
-  digitalWrite(solR,HIGH);                //Begin fowards pressure
+  digitalWrite(solL,HIGH);                //Begin fowards pressure
   while(!pressureIsHigh()){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  digitalWrite(solR,LOW);                 //Cut forward pressure
+  digitalWrite(solL,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
   float haltTime = dHaltTime();
@@ -293,12 +293,12 @@ void drawerTiming(){
   delay(300);
 
   // retract until timeElapsed has reached haltTime
-  digitalWrite(solL,HIGH);    //Begin retraction pressure
+  digitalWrite(solR,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time or pressure threshold
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
-  digitalWrite(solL,LOW); // The cylinder should now be in position, stop here
+  digitalWrite(solR,LOW); // The cylinder should now be in position, stop here
   return;
 }
 
@@ -457,12 +457,12 @@ void autoExec(){
   //Clear the drawer and open the chamber
   if(autoState==PUSH_BRICK){
     if(!stateIsSetup){
-      digitalWrite(solR,HIGH);
+      digitalWrite(solL,HIGH);
       stateIsSetup = true;
     }
 
     else if(pressureIsHigh()){
-      digitalWrite(solR,LOW);
+      digitalWrite(solL,LOW);
       changeAutoState(DROP_PLATFORM);
     }
 
@@ -502,7 +502,7 @@ void autoExec(){
 
     //Begin retraction if it has not yet begun
     if(!stateIsSetup){
-      digitalWrite(solL,HIGH);
+      digitalWrite(solR,HIGH);
       stateIsSetup=true;
     }
 
@@ -510,7 +510,7 @@ void autoExec(){
     else if(millis() - lastStateChange > dHaltTime()){
 
       //Stop retraction and change states after reaching threshold 
-      digitalWrite(solL,LOW);
+      digitalWrite(solR,LOW);
       changeAutoState(COMPRESS_BLOCK);
     }
 
@@ -540,12 +540,12 @@ void autoExec(){
 
   else if(autoState==OPEN_PASSAGE){
     if(!stateIsSetup){
-      digitalWrite(solL,HIGH);
+      digitalWrite(solR,HIGH);
       stateIsSetup = true;
     }
 
     else if(pressureIsHigh()){
-      digitalWrite(solL,LOW);
+      digitalWrite(solR,LOW);
       changeAutoState(RAISE_BRICK);
     }
   }
