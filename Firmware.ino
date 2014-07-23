@@ -437,8 +437,7 @@ void turnAllSolonoidsOff(){
 void terminateAutoExec(){
   //This function should be run when autoExec is abrubtly ended.
   //Because we have many state variables 
-  autoState = PUSH_BRICK;
-  lastStateChange = 0;
+  changeAutoState(PUSH_BRICK);
   turnAllSolonoidsOff();
 }
 
