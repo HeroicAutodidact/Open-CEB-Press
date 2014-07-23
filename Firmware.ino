@@ -27,7 +27,7 @@ int xledA=PIN_E1;//either xledA or xledM may be on at the same time
 unsigned long delaytime=500; //500ms - half second blink of pressure sensor indicator
 
 int dRetractionTime = -1; //A vanlue of -1 means that we have not yet recorded a value for dRetractionTime
-int mExtensionTime = -1;
+int mRetractionTime = -1;
 
 unsigned long ledAStartTime=0;
 unsigned long prestime=0;
@@ -119,13 +119,13 @@ void setAuto(){
    //If we don't have values for either, we need to call drawer bounce
    //This is because we need the shaft to be open so as not to cause pre-mature compression
    //INTERUPTS THE MAIN LOOP
-   if(dRetractionTime==-1 || mExtensionTime==-1){
+   if(dRetractionTime==-1 || mRetractionTime==-1){
      drawerBounce();
    }
 
    //If we don't have a value for mExtensionTime,l run mainbounce to derive one
    //INTERUPTS THE MAIN LOOP
-   if(mExtensionTime == -1){
+   if(mTime == -1){
      mainBounce();
    }
 
@@ -133,7 +133,7 @@ void setAuto(){
 
    //Blink Procedure
    //If we have waited an entire blink cycle...
-   if((millis()-ledAStartTime)>delaytime){
+   if(millis()-ledAStartTime>delaytime){
 
     //Turn ledA on if it is off, off if it's on
     if(ledAIsLit){
@@ -309,19 +309,19 @@ void mainBounce(){
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW.
 
-  digitalWrite(solD,HIGH);                //Begin retraction pressure
+  digitalWrite(solU,HIGH);                //Begin extension pressure
   while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  digitalWrite(solD,LOW);                 //Cut retraction pressure
+  digitalWrite(solU,LOW);                 //Cut exension pressure
   delay(500);
-  digitalWrite(solU,HIGH);                //Begin backwards pressure
+  digitalWrite(solD,HIGH);                //Begin retraction pressure
   long int extensionStart = millis();   //Record the starttime of our extension
   while(!pressureIsHigh()){
     delay(hydraulicTestFreq);
   }
   mExtensionTime = millis() - extensionStart;
-  digitalWrite(solU,LOW);
+  digitalWrite(solD,LOW);
   return;
 }
 
@@ -335,7 +335,7 @@ int mHaltTime(){
   float fracTurn = potMValue / 1023.0;
 
    //TODO: There better be a value for dRetractionTime... how to catch if there isnt?
-  return (int)(fracTurn * mExtensionTime);
+  return (int)(fracTurn * mRetractionTime);
 }
 
 void mainTiming(){
@@ -349,11 +349,11 @@ void mainTiming(){
   delay(300); //Debounce, don't want to read pressureIsHigh twice in one strike!
 
   // retract the cylinder until we reach threshold pressure
-  digitalWrite(solD,HIGH);                //Begin fowards pressure
+  digitalWrite(solU,HIGH);                //Begin extension pressure
   while(!pressureIsHigh()){ //While we are not at threshold pressure... 
     delay(hydraulicTestFreq);                      //continue to push the drawer
   }
-  digitalWrite(solD,LOW);                 //Cut forward pressure
+  digitalWrite(solU,LOW);                 //Cut extension pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
   float haltTime = mHaltTime();
@@ -366,12 +366,12 @@ void mainTiming(){
   delay(300);
 
   // retract until timeElapsed has reached haltTime
-  digitalWrite(solU,HIGH);    //Begin retraction pressure
+  digitalWrite(solD,HIGH);    //Begin retraction pressure
   while(timeElapsed < haltTime && !pressureIsHigh()){ //Continue retracting until we hit our halting time
     delay(hydraulicTestFreq);
     timeElapsed = millis() - timerStart;
   }
-  digitalWrite(solU,LOW); // The cylinder should now be in position, stop here
+  digitalWrite(solD,LOW); // The cylinder should now be in position, stop here
   return;
 }
 
@@ -473,7 +473,7 @@ void autoExec(){
       stateIsSetup = true;
     }
 
-    else if(pressureIsHigh()){
+    else if(millis() - lastStateChange > mHaltTime()){
       digitalWrite(solD,LOW);
       changeAutoState(DUMP_DIRT);
     }
@@ -507,8 +507,6 @@ void autoExec(){
 
     //If we've reached threshold time...
     else if(millis() - lastStateChange > dHaltTime()){
-      Serial.print("ElapsedTime");Serial.println(millis() - lastStateChange)
-      Serial.print("dHaltTime");Serial.println(dHaltTime())
 
       //Stop retraction and change states after reaching threshold 
       digitalWrite(solR,LOW);
@@ -525,9 +523,7 @@ void autoExec(){
       stateIsSetup=true;
     }
 
-    else if(millis() - lastStateChange > mHaltTime()){
-      Serial.print("ElapsedTime");Serial.println(millis() - lastStateChange)
-      Serial.print("mHaltTime");Serial.println(mHaltTime())
+    else if(pressureIsHigh()){
 
       //Turn off the main cylinder
       digitalWrite(solU,LOW);
@@ -608,7 +604,7 @@ void setup() {
   pinMode(potM, INPUT);
   pinMode(potD, INPUT);
 
-  Serial.begin(9600);
+  Serial.begin(9600); //For debugging
 }
 
 
@@ -626,9 +622,4 @@ void loop() {
       testButtons();
     }
   }
-  // Serial.print("Mode:");
-  // if(running && automode){Serial.println("auto");}
-  // if(running && !automode){Serial.println("manual");}
-  // if(!running){Serial.println("test");}
-  Serial.print("Pressure:");Serial.println(pressureIsHigh());
 }
