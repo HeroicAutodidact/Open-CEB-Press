@@ -356,7 +356,7 @@ void mainTiming(){
   digitalWrite(solD,LOW);                 //Cut forward pressure
 
   // calculate haltTime the amount of time it would take to retract perc percent of the way down the shaft
-  float haltTime = dHaltTime();
+  float haltTime = mHaltTime();
 
   // start timer
   long int timerStart = millis();
@@ -627,7 +627,5 @@ void loop() {
   // if(running && automode){Serial.println("auto");}
   // if(running && !automode){Serial.println("manual");}
   // if(!running){Serial.println("test");}
-  Serial.print("ReadRunning:");Serial.println(digitalRead(switchRUNNING));
-  Serial.print("ReadAuto:");Serial.println(digitalRead(switchAUTO));
-  Serial.print("AutoVar:");Serial.println(automode);
+  Serial.print("Pressure:");Serial.println(pressureIsHigh());
 }
