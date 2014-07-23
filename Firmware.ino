@@ -46,9 +46,9 @@ long int shakeBegin = 0;
 
 //Encapsulates a debounced read of the pressure sensor
 boolean pressureIsHigh(){
-  if(digitalRead(pressuresens)==LOW){
-    delay(5);
-    if(digitalRead(pressuresens)==LOW){
+  if(digitalRead(pressuresens)==HIGH){
+    delay(20);
+    if(digitalRead(pressuresens)==HIGH){
       return true;
     }
   }
@@ -234,11 +234,11 @@ void drawerBounce(){
   // This function sends the drawer to its forward-most point, then returns to its back limit. 
   // We will change direction and halt whenever we reach a threshold of pressure indicated by our
   // 'pressuresens' register going LOW. 
-  digitalWrite(solR,HIGH);                //Begin extension pressure
+  digitalWrite(solL,HIGH);                //Begin extension pressure
   while(!pressureIsHigh()){ //While we have not reached threshold pressure we have not reached 
     delay(50);                      //continue to push the drawer
   }
-  digitalWrite(solR,LOW);                 //Cut extention pressure pressure
+  digitalWrite(solL,LOW);                 //Cut extention pressure pressure
   delay(200);
   digitalWrite(solR,HIGH);                //Begin backwards pressure
   long int retractionStart = millis();   //Record the starttime of our retraction
